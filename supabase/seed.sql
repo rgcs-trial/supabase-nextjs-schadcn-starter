@@ -6,7 +6,7 @@
 INSERT INTO auth.users (id, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 VALUES 
   ('d0d2c5f8-3c4a-4b7a-8f1e-2a3b4c5d6e7f', 'test@example.com', '{"provider":"email","providers":["email"]}', '{}', now(), now()),
-  ('a1b2c3d4-5e6f-7g8h-9i0j-1k2l3m4n5o6p', 'demo@example.com', '{"provider":"email","providers":["email"]}', '{}', now(), now())
+  ('a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d', 'demo@example.com', '{"provider":"email","providers":["email"]}', '{}', now(), now())
 ON CONFLICT (id) DO NOTHING;
 
 -- Create sample todos for test users
@@ -20,10 +20,10 @@ VALUES
   ('Add real-time subscriptions', 'Implement real-time updates for todos', false, 'd0d2c5f8-3c4a-4b7a-8f1e-2a3b4c5d6e7f', now() - interval '1 day', now() - interval '1 day'),
   
   -- Todos for demo@example.com
-  ('Review project requirements', 'Go through all the project specifications', true, 'a1b2c3d4-5e6f-7g8h-9i0j-1k2l3m4n5o6p', now() - interval '3 days', now() - interval '3 days'),
-  ('Set up development environment', 'Install Node.js, pnpm, and required tools', true, 'a1b2c3d4-5e6f-7g8h-9i0j-1k2l3m4n5o6p', now() - interval '2 days', now() - interval '2 days'),
-  ('Deploy to production', 'Set up CI/CD and deploy the application', false, 'a1b2c3d4-5e6f-7g8h-9i0j-1k2l3m4n5o6p', now() - interval '1 day', now() - interval '1 day'),
-  ('Write documentation', 'Create comprehensive README and API docs', false, 'a1b2c3d4-5e6f-7g8h-9i0j-1k2l3m4n5o6p', now(), now())
+  ('Review project requirements', 'Go through all the project specifications', true, 'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d', now() - interval '3 days', now() - interval '3 days'),
+  ('Set up development environment', 'Install Node.js, pnpm, and required tools', true, 'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d', now() - interval '2 days', now() - interval '2 days'),
+  ('Deploy to production', 'Set up CI/CD and deploy the application', false, 'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d', now() - interval '1 day', now() - interval '1 day'),
+  ('Write documentation', 'Create comprehensive README and API docs', false, 'a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d', now(), now())
 ON CONFLICT DO NOTHING;
 
 -- Add some public todos (if you want to show todos without authentication)
