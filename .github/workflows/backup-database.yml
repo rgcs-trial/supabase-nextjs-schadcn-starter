@@ -1,0 +1,106 @@
+name: Backup Database
+
+# WARNING: Only use this workflow in PRIVATE repositories
+# Never backup your production data to a public repository
+
+on:
+  schedule:
+    # Runs daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to backup'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'production' }}
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Create backup directory
+        run: mkdir -p backups/$(date +%Y-%m-%d)
+
+      - name: Backup database schema
+        run: |
+          supabase db dump \
+            --db-url "${{ secrets.DATABASE_URL }}" \
+            --schema-only \
+            -f backups/$(date +%Y-%m-%d)/schema.sql
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Backup roles
+        run: |
+          supabase db dump \
+            --db-url "${{ secrets.DATABASE_URL }}" \
+            --role-only \
+            -f backups/$(date +%Y-%m-%d)/roles.sql
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Backup data (optional - be careful with large databases)
+        run: |
+          # Only backup specific tables to avoid huge files
+          # Modify this list based on your needs
+          TABLES="todos"
+          
+          for table in $TABLES; do
+            supabase db dump \
+              --db-url "${{ secrets.DATABASE_URL }}" \
+              --data-only \
+              --include $table \
+              -f backups/$(date +%Y-%m-%d)/${table}_data.sql
+          done
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Compress backup
+        run: |
+          tar -czf backups/backup-$(date +%Y-%m-%d-%H%M%S).tar.gz \
+            backups/$(date +%Y-%m-%d)/
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-backup-${{ github.event.inputs.environment || 'production' }}-$(date +%Y-%m-%d)
+          path: backups/*.tar.gz
+          retention-days: 30
+
+      # Optional: Upload to S3 or other cloud storage
+      # - name: Upload to S3
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: us-east-1
+      # 
+      # - name: Copy to S3
+      #   run: |
+      #     aws s3 cp backups/*.tar.gz s3://your-backup-bucket/database-backups/
+
+# Required GitHub Secrets:
+# - DATABASE_URL: PostgreSQL connection string (format: postgresql://user:password@host:port/database)
+# 
+# Optional for S3 backup:
+# - AWS_ACCESS_KEY_ID: AWS access key
+# - AWS_SECRET_ACCESS_KEY: AWS secret key
+
+# SECURITY NOTES:
+# 1. NEVER use this in a public repository
+# 2. Use GitHub environments to restrict access
+# 3. Rotate backup credentials regularly
+# 4. Consider encrypting backups before storage
+# 5. Test restore procedures regularly

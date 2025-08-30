@@ -1,0 +1,59 @@
+name: Database Tests
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/seed.sql'
+      - 'supabase/tests/**'
+      - '.github/workflows/database-tests.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase local development stack
+        run: supabase start
+
+      - name: Verify database schema
+        run: |
+          supabase db lint
+          
+      - name: Run migrations
+        run: |
+          supabase db reset --debug
+          
+      - name: Verify seed data
+        run: |
+          supabase db dump --data-only | grep -q "todos" || exit 1
+          echo "✅ Seed data verified"
+
+      - name: Test database structure
+        run: |
+          # Check if todos table exists
+          supabase db dump --schema-only | grep -q "CREATE TABLE.*todos" || exit 1
+          echo "✅ Todos table exists"
+          
+          # Check if RLS is enabled
+          supabase db dump --schema-only | grep -q "ALTER TABLE.*todos.*ENABLE ROW LEVEL SECURITY" || exit 1
+          echo "✅ RLS is enabled on todos table"
+          
+          # Check if policies exist
+          supabase db dump --schema-only | grep -q "CREATE POLICY" || exit 1
+          echo "✅ RLS policies exist"
+
+      # Optional: Add pgTAP tests if you have them
+      # - name: Run pgTAP tests
+      #   run: |
+      #     supabase test db
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop

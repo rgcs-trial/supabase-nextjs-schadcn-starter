@@ -333,3 +333,26 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+
+# Remote project configurations for GitHub branching integration
+# These are used when deploying to different environments
+# Replace the project_id values with your actual Supabase project references
+
+# Production environment (main branch)
+# Uncomment and configure when you have a production project
+# [remotes.production]
+# project_id = "your-production-project-ref"
+# [remotes.production.auth]
+# site_url = "https://your-production-domain.com"
+
+# Staging environment (staging branch) 
+# Uncomment and configure when you have a staging project
+# [remotes.staging]
+# project_id = "your-staging-project-ref"
+# [remotes.staging.auth]
+# site_url = "https://your-staging-domain.com"
+# [remotes.staging.db.seed]
+# sql_paths = ["./seed.sql"]
+
+# GitHub branching will automatically create preview branches for PRs
+# Each preview branch will use the seed.sql file by default
